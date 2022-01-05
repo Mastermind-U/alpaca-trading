@@ -1,8 +1,11 @@
+"""Alpaca api code."""
+
 from functools import lru_cache
 
-import httpx
 from httpx import AsyncClient
-from pydantic import BaseModel, SecretStr
+from pydantic import BaseModel, SecretStr, validate_arguments
+
+from .models import Order, OrderListRequest
 
 
 class Settings(BaseModel):
@@ -25,12 +28,18 @@ def get_settings() -> Settings:
 settings = get_settings()
 
 
-class SiteMap:
+class MarketURLs:
+    """Market endpoint list."""
+
+    MARKET_CRYP_DATA = "https://data.alpaca.markets/v1beta1/crypto"
+    MARKET_CRYP_DATA_ALIVE = "wss://stream.data.alpaca.markets/v1beta1/crypto"
+
+
+class AlpacaMap:
     """Alpaca endpoints list."""
 
     ACCOUNT = "/v2/account"
-    MARKET_CRYP_DATA = "https://data.alpaca.markets/v1beta1/crypto"
-    MARKET_CRYP_DATA_ALIVE = "wss://stream.data.alpaca.markets/v1beta1/crypto"
+    ORDERS = "/v2/orders"
 
 
 class AlpacaAPI:
@@ -42,19 +51,31 @@ class AlpacaAPI:
     def __init__(self):
         """Set up debug key."""
         if settings.DEBUG:
-            self.URL = self.BASE_PAPER_URL
+            self.url = self.BASE_PAPER_URL
         else:
-            self.URL = self.BASE_LIVE_URL
+            self.url = self.BASE_LIVE_URL
+        self.client = AsyncClient(base_url=self.url)
 
     async def _make_request(self, url: str, data: dict):
-        async with AsyncClient(base_url=self.URL) as client:
-            response = await client.post(
-                url,
-                json=data,
-                headers={  # type: ignore
-                    "APCA-API-KEY-ID": settings.ALPACA_API_KEY_ID,
-                    "APCA-API-SECRET-KEY": settings.ALPACA_SECRET_KEY,
-                },
-            )
+        response = await self.client.post(
+            url,
+            json=data,
+            headers={  # type: ignore
+                "APCA-API-KEY-ID": settings.ALPACA_API_KEY_ID,
+                "APCA-API-SECRET-KEY": settings.ALPACA_SECRET_KEY,
+            },
+        )
 
-            return response.json()
+        return response.json()
+
+    @validate_arguments
+    async def orders(self, data: OrderListRequest) -> list[Order]:
+        """Get order batch.
+
+        :param data: request data
+        :type data: OrderListRequest
+        :return: order batch
+        :rtype: list[Order]
+        """
+        data = await self._make_request(AlpacaMap.ORDERS, data.json())
+        return [Order(**d) for d in data]
