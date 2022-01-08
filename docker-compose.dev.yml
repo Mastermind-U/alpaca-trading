@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: ./app/Dockerfile
-    restart: "no"
+    restart: unless-stopped
     container_name: alpaca-trading
     env_file:
       - .env
