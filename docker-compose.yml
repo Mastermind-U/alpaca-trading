@@ -3,7 +3,7 @@ version: "3.7"
 
 services:
   traefik:
-    image: "traefik:v2.3"
+    image: "traefik:latest"
     container_name: traefik
     command:
       - --api
@@ -40,7 +40,7 @@ services:
     container_name: alpaca-trading
     env_file:
       - .env
-    command: "uvicorn main:app --host 0.0.0.0 --port 8000"
+    command: "uvicorn main:app --host 0.0.0.0 --port 8000 --log-level=INFO"
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.server.loadbalancer.server.port=8000"
