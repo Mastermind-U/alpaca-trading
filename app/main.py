@@ -30,7 +30,6 @@ async def make_order(data: OrderWebhookData):
         "timenow": "{{timenow}}"
     }
     """
-    logger.debug(data)
     # alpaca.post_order(OrderPlaceRequest(
     #     extended_hours=None
     # ))

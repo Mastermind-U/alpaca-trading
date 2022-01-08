@@ -1,30 +1,11 @@
 """Alpaca api code."""
 
-from functools import lru_cache
 from typing import Any, Literal
 
 from httpx import AsyncClient
-from pydantic import BaseModel, SecretStr
+from settings import get_settings
 
 from .models import Order, OrderListRequest, OrderPlaceRequest
-
-
-class Settings(BaseModel):
-    """Base settings model."""
-
-    DEBUG: bool = True
-    ALPACA_API_KEY_ID: SecretStr
-    ALPACA_SECRET_KEY: SecretStr
-
-
-@lru_cache
-def get_settings() -> Settings:
-    """Generate settings."""
-    return Settings(  # noqa: S106
-        ALPACA_API_KEY_ID="PKT3M5D3K2FG0HXSB3TV",
-        ALPACA_SECRET_KEY="gRzbv7Ag1Uy2F0wuqcVJ1nzK2UiS2WgEpAu93Mq1",
-    )
-
 
 settings = get_settings()
 
