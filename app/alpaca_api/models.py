@@ -5,6 +5,16 @@ from typing import Literal, Optional
 from uuid import UUID
 
 from pydantic import BaseModel
+from pydantic.types import constr
+
+OrderType = Literal[  # noqa: A003
+    "market", "limit",
+    "stop", "stop_limit",
+    "trailing_stop",
+]
+TimeInForce = Literal["day", "gtc", "cls", "ioc", "fok"]
+SideType = Literal["buy", "sell"]
+OrderClass = Literal["simple", "bracket", "oco", "oto"]
 
 
 class OrderListRequest(BaseModel):
@@ -17,6 +27,39 @@ class OrderListRequest(BaseModel):
     direction: Literal['asc', 'desc']
     nested: bool
     symbols: list[str]
+
+
+class Profit(BaseModel):
+    """Additional parameters for take-profit leg of advanced orders."""
+
+    limit_price: int
+
+
+class StopLoss(BaseModel):
+    """Additional parameters for stop-loss leg of advanced orders."""
+
+    stop_price: int
+    limit_price: Optional[int] = None
+
+
+class OrderPlaceRequest(BaseModel):
+    """Place order request body."""
+
+    symbol: str
+    qty: int
+    notional: int
+    side: SideType
+    type: OrderType  # noqa: A003
+    time_in_force: TimeInForce
+    limit_price: Optional[int] = None
+    stop_price: Optional[int] = None
+    trail_price: Optional[int] = None
+    trail_percent: Optional[int] = None
+    extended_hours: bool = False
+    client_order_id: Optional[constr(max_length=48)]  # type: ignore
+    order_class: OrderClass
+    take_profit: Profit
+    stop_loss: StopLoss
 
 
 class Order(BaseModel):
@@ -41,15 +84,11 @@ class Order(BaseModel):
     qty: Optional[int]
     filled_qty: Optional[int] = 0
     filled_avg_price: int
-    order_class: Literal["simple", "bracket", "oco", "oto"]
+    order_class: OrderClass
     order_type: Optional[str] = None
-    type: Literal[  # noqa: A003
-        "market", "limit",
-        "stop", "stop_limit",
-        "trailing_stop",
-    ]
-    side: Literal["buy", "sell"]
-    time_in_force: Literal["day", "gtc", "cls", "ioc", "fok"]
+    type: OrderType  # noqa: A003
+    side: SideType
+    time_in_force: TimeInForce
     limit_price: Optional[float] = None
     stop_price: Optional[float] = None
     status: Literal[
@@ -62,3 +101,17 @@ class Order(BaseModel):
     trail_percent: int
     trail_price: int
     hwm: int
+
+
+class OrderWebhookData(BaseModel):
+    """Data from webhook."""
+
+    open: float  # noqa: A003
+    high: float
+    low: float
+    close: float
+    exchange: str
+    ticker: str
+    volume: float
+    time: datetime
+    timenow: datetime

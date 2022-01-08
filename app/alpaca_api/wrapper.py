@@ -1,11 +1,12 @@
 """Alpaca api code."""
 
 from functools import lru_cache
+from typing import Any, Literal
 
 from httpx import AsyncClient
-from pydantic import BaseModel, SecretStr, validate_arguments
+from pydantic import BaseModel, SecretStr
 
-from .models import Order, OrderListRequest
+from .models import Order, OrderListRequest, OrderPlaceRequest
 
 
 class Settings(BaseModel):
@@ -19,7 +20,7 @@ class Settings(BaseModel):
 @lru_cache
 def get_settings() -> Settings:
     """Generate settings."""
-    return Settings(
+    return Settings(  # noqa: S106
         ALPACA_API_KEY_ID="PKT3M5D3K2FG0HXSB3TV",
         ALPACA_SECRET_KEY="gRzbv7Ag1Uy2F0wuqcVJ1nzK2UiS2WgEpAu93Mq1",
     )
@@ -56,10 +57,13 @@ class AlpacaAPI:
             self.url = self.BASE_LIVE_URL
         self.client = AsyncClient(base_url=self.url)
 
-    async def _make_request(self, url: str, data: dict):
-        response = await self.client.post(
-            url,
-            json=data,
+    async def _make_request(
+        self, url: str,
+        rtype: Literal['POST', 'GET', 'DELETE'],
+        data: dict,
+    ) -> Any:
+        response = await self.client.request(
+            rtype, url, json=data,
             headers={  # type: ignore
                 "APCA-API-KEY-ID": settings.ALPACA_API_KEY_ID,
                 "APCA-API-SECRET-KEY": settings.ALPACA_SECRET_KEY,
@@ -68,7 +72,6 @@ class AlpacaAPI:
 
         return response.json()
 
-    @validate_arguments
     async def orders(self, data: OrderListRequest) -> list[Order]:
         """Get order batch.
 
@@ -77,5 +80,12 @@ class AlpacaAPI:
         :return: order batch
         :rtype: list[Order]
         """
-        data = await self._make_request(AlpacaMap.ORDERS, data.json())
-        return [Order(**d) for d in data]
+        response: list[dict] = await self._make_request(
+            AlpacaMap.ORDERS, "GET", data.dict())
+        return [Order(**order) for order in response]
+
+    async def post_order(self, data: OrderPlaceRequest) -> Order:
+        """Place order, buy stocks."""
+        response: dict = await self._make_request(
+            AlpacaMap.ORDERS, "POST", data.dict())
+        return Order(**response)
