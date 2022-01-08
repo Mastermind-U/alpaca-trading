@@ -8,7 +8,6 @@ from alpaca_api.models import (
 )
 from alpaca_api.wrapper import AlpacaAPI
 from fastapi import FastAPI
-from loguru import logger
 
 app = FastAPI()
 alpaca = AlpacaAPI()
