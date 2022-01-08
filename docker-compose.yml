@@ -40,7 +40,7 @@ services:
     container_name: alpaca-trading
     env_file:
       - .env
-    command: "uvicorn main:app --host 0.0.0.0 --port 8000 --log-level=INFO"
+    command: "uvicorn main:app --host 0.0.0.0 --port 8000 --log-level=info"
     labels:
       - "traefik.enable=true"
       - "traefik.http.services.server.loadbalancer.server.port=8000"
