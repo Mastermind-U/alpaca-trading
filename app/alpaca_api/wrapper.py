@@ -3,6 +3,8 @@
 from typing import Any, Literal
 
 from httpx import AsyncClient
+from loguru import logger
+from pydantic import ValidationError
 from settings import get_settings
 
 from .models import Order, OrderListRequest, OrderPlaceRequest
@@ -30,6 +32,9 @@ class AlpacaAPI:
     BASE_PAPER_URL: str = "https://paper-api.alpaca.markets"
     BASE_LIVE_URL: str = "https://api.alpaca.markets"
 
+    class APIException(Exception):
+        """API re raise exc."""
+
     def __init__(self):
         """Set up debug key."""
         if settings.DEBUG:
@@ -50,7 +55,8 @@ class AlpacaAPI:
                 "APCA-API-SECRET-KEY": settings.ALPACA_SECRET_KEY,
             },
         )
-
+        if response.status_code != 200:
+            raise self.APIException(response.json())
         return response.json()
 
     async def orders(self, data: OrderListRequest) -> list[Order]:
@@ -69,4 +75,7 @@ class AlpacaAPI:
         """Place order, buy stocks."""
         response: dict = await self._make_request(
             AlpacaMap.ORDERS, "POST", data.dict())
-        return Order(**response)
+        try:
+            return Order(**response)
+        except ValidationError as err:
+            logger.error(err)
