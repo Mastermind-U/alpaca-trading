@@ -33,8 +33,9 @@ services:
       - "traefik.enable=true"
 
   server:
-    image: "${RELEASE_IMAGE}"
-    build: .
+    build:
+      context: .
+      dockerfile: ./app/Dockerfile
     restart: unless-stopped
     container_name: alpaca-trading
     env_file:
