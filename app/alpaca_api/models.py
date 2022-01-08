@@ -46,8 +46,8 @@ class OrderPlaceRequest(BaseModel):
     """Place order request body."""
 
     symbol: str
-    qty: int
-    notional: int
+    qty: Optional[int]
+    notional: Optional[int]
     side: SideType
     type: OrderType  # noqa: A003
     time_in_force: TimeInForce
@@ -81,9 +81,9 @@ class Order(BaseModel):
     symbol: str
     asset_class: str  # "us_equity"
     notional: Optional[int]
-    qty: Optional[int]
+    qty: Optional[float]
     filled_qty: Optional[int] = 0
-    filled_avg_price: int
+    filled_avg_price: Optional[float]
     order_class: OrderClass
     order_type: Optional[str] = None
     type: OrderType  # noqa: A003
@@ -92,15 +92,15 @@ class Order(BaseModel):
     limit_price: Optional[float] = None
     stop_price: Optional[float] = None
     status: Literal[
-        "new", "partially_filled", "filled",
+        "accepted", "new", "partially_filled", "filled",
         "done_for_day", "canceled", "expired",
         "replaced", "pending_cancel", "pending_replace",
     ]
     extended_hours: bool
     legs: Optional["Order"]
-    trail_percent: int
-    trail_price: int
-    hwm: int
+    trail_percent: Optional[int]
+    trail_price: Optional[int]
+    hwm: Optional[int]
 
 
 class OrderWebhookData(BaseModel):
