@@ -20,7 +20,7 @@ services:
       - --entrypoints.web.http.redirections.entryPoint.scheme=https
       - --entrypoints.web.http.redirections.entrypoint.permanent=true
       - --certificatesresolvers.analytics-resolver.acme.tlschallenge=true
-      - --certificatesresolvers.analytics-resolver.acme.email=ekryukov@b2basket.ru
+      - --certificatesresolvers.analytics-resolver.acme.email=rex49513@gmail.com
       - --certificatesresolvers.analytics-resolver.acme.storage=/letsencrypt/acme.json
     ports:
       - "80:80"
