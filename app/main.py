@@ -31,7 +31,7 @@ async def make_order(data: OrderWebhookData):
     """
     return await alpaca.post_order(OrderPlaceRequest(
         symbol=data.ticker,
-        notional=1000,
+        notional=100,
         side="buy",
         type="limit",
         time_in_force="gtc",
